@@ -1,0 +1,92 @@
+// --- Existing Parameters ---
+inner_length = 102;          // Internal length of the box
+inner_width = 27;           // Internal width of the box
+wall_thickness = 4;         // Thickness of the walls
+wall_height = 18;           // Height of the box walls
+backplate_height = 18;      // Height of the back mounting plate
+overhang = 0;               // Extension of the backplate beyond the box
+
+// --- Arms and Feet Parameters ---
+arm_length_y = 35;          // How far the arm extends in the -Y direction
+foot_width_x = 20;          // Width of the vertical mounting foot
+foot_height_z = 30;         // Height of the vertical mounting foot
+foot_hole_diameter = 6.2;   // Diameter of the hole in the foot
+foot_hole_offset = -3;      // Offset for the hole (negative is outwards, positive is inwards)
+
+// --- Support Rim Parameters ---
+support_rim_base = 5;       // Standard base width of the support rim
+support_height = 3;         // Thickness of the support rim on the Z-axis
+extra_support_left = 10;    // Additional width for the left support rim
+extra_support_right = 10;   // Additional width for the right support rim
+
+hole_diameter = 0;          // Diameter of the backplate holes
+hole_distance_z = 10;       // Vertical distance of holes from edge
+
+// --- Calculations ---
+outer_length = inner_length + (2 * wall_thickness);
+outer_width = inner_width + (2 * wall_thickness);
+backplate_length = outer_length + (2 * overhang);
+
+// --- The Model ---
+difference() {
+    union() {
+        // 1. Wide Backplate
+        translate([-overhang, 0, 0])
+            cube([backplate_length, wall_thickness, backplate_height]);
+
+        // 2. The Box
+        difference() {
+            cube([outer_length, outer_width, wall_height]);
+            translate([wall_thickness, wall_thickness, support_height])
+                cube([inner_length, inner_width, wall_height + 1]);
+            translate([wall_thickness + (support_rim_base + extra_support_left), wall_thickness + support_rim_base, -1])
+                cube([inner_length - (2*support_rim_base + extra_support_left + extra_support_right), 
+                      inner_width - (2 * support_rim_base), 
+                      support_height + 2]);
+            translate([-1, -1, -1])
+                cube([outer_length + 2, wall_thickness + 1, max(wall_height, backplate_height) + 2]);
+        }
+
+        // 3. Arms (-Y side) and Vertical Feet
+        for(i = [-1, 1]) {
+            let(x_pos = (i == -1) ? -overhang : outer_length + overhang - wall_thickness) {
+                
+                // Horizontal arm
+                translate([x_pos, -arm_length_y, 0])
+                    cube([wall_thickness, arm_length_y, wall_height]);
+                
+                // Vertical foot at the end
+                let(x_foot = (i == -1) ? x_pos - foot_width_x + wall_thickness : x_pos)
+                translate([x_foot, -arm_length_y - wall_thickness, 0])
+                    cube([foot_width_x, wall_thickness, foot_height_z]);
+            }
+        }
+    }
+
+    // --- Holes Section ---
+    union() {
+        // Backplate holes
+        translate([-overhang/2, -1, hole_distance_z])
+            rotate([-90, 0, 0]) cylinder(d=hole_diameter, h=wall_thickness + 2, $fn=50);
+        translate([-overhang/2, -1, backplate_height - hole_distance_z])
+            rotate([-90, 0, 0]) cylinder(d=hole_diameter, h=wall_thickness + 2, $fn=50);
+        translate([outer_length + overhang/2, -1, hole_distance_z])
+            rotate([-90, 0, 0]) cylinder(d=hole_diameter, h=wall_thickness + 2, $fn=50);
+        translate([outer_length + overhang/2, -1, backplate_height - hole_distance_z])
+            rotate([-90, 0, 0]) cylinder(d=hole_diameter, h=wall_thickness + 2, $fn=50);
+
+        // Vertical feet holes
+        for(i = [-1, 1]) {
+            let(x_pos_arm = (i == -1) ? -overhang : outer_length + overhang - wall_thickness)
+            let(x_foot = (i == -1) ? x_pos_arm - foot_width_x + wall_thickness : x_pos_arm)
+            
+            // X-position: Center of foot + offset logic
+            let(x_hole = x_foot + (foot_width_x / 2) + (i * -foot_hole_offset)) 
+            
+            // Z-position: Centered on foot_height_z
+            translate([x_hole, -arm_length_y - wall_thickness - 1, foot_height_z / 2])
+                rotate([-90, 0, 0]) 
+                    cylinder(d=foot_hole_diameter, h=wall_thickness + 2, $fn=50);
+        }
+    }
+}
