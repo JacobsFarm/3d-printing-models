@@ -1,0 +1,87 @@
+// --- Instellingen ---
+show_shaft = true; 
+show_ring  = true; 
+show_cable = true; 
+speling = 0.2; // Iets ruimer voor 3D prints
+$fn = 30;      // Verlaagd om crashes te voorkomen
+
+// --- Logica ---
+if (show_shaft && $preview) transparent_shaft();
+if (show_cable && $preview) cable_shaft_preview();
+
+if (show_ring) {
+    translate([0, 0, 70]) test_dop();
+}
+
+// --- Modules ---
+
+module test_dop() {
+    color("Orange") {
+        difference() {
+            // De buitenkant van de dop 
+            cylinder(h = 33, d = 15);
+
+            // Uitsnijding Hoofdas (Zonder minkowski voor snelheid)
+            translate([0, 0, -70]) {
+                shaft_geometry(extra_d = speling * 2); 
+            }
+            
+            // Uitsnijding Cable Shaft (Zonder minkowski)
+            translate([0, 0, -70]) {
+                cable_shaft_geometry(extra_d = speling * 2);
+            }
+        }
+    }
+}
+
+module cable_shaft_geometry(extra_d = 0) {
+    d = 8 + extra_d;
+    r_bocht = 12;
+    extra_lengte = 30; // De gevraagde verlenging
+    
+    translate([0, -15, 50]) {
+        // 1. Verticaal deel 
+        cylinder(h = 90, d = d);
+        
+        // 2. De flauwe bocht onderaan naar -Y
+        // We positioneren de bocht aan de voet van de cilinder
+        translate([0, -r_bocht, 0])
+        rotate([0, 270, 0])
+        rotate([0, 0, 90])
+        render() 
+        rotate_extrude(angle = 90) {
+            translate([r_bocht, 0])
+            circle(d = d);
+        }
+
+        // 3. Extra recht stuk van 30 mm na de bocht
+        // De bocht eindigt op Y = -r_bocht en Z = -r_bocht (tov het startpunt)
+        // We draaien de cilinder 90 graden om hem plat te leggen
+        translate([0, -r_bocht, -r_bocht])
+        rotate([90, 0, 0])
+        cylinder(h = extra_lengte, d = d);
+    }
+}
+
+module shaft_geometry(extra_d = 0) {
+    d = 10 + extra_d;
+    difference() {
+        cylinder(h = 100, d = d); 
+        
+        // Alleen de platte kanten uitsnijden als er GEEN speling nodig is
+        if (extra_d == 0) {
+            translate([0, 0, 80]) {
+                translate([5.5, 0, 10]) cube([6, 12, 20.1], center = true); 
+                translate([-5.5, 0, 10]) cube([6, 12, 20.1], center = true); 
+            }
+        }
+    }
+}
+
+module cable_shaft_preview() {
+    color([0.3, 0.9, 0.3, 0.3]) cable_shaft_geometry();
+}
+
+module transparent_shaft() {
+    color([0.6, 0.7, 1.0, 0.2]) shaft_geometry(); 
+}
