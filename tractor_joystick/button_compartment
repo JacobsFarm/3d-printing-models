@@ -1,0 +1,111 @@
+// --- Instellingen ---
+$fn = 100; 
+
+// Afmetingen
+straal_buiten = 90;
+straal_binnen = 50;
+hoek = 60;          
+hoogte_bakje = 30;
+wand_dikte = 3;      
+rand_diepte = 3;    
+speling = 0.2;      
+
+// VERBREDING
+breedte_factor = 1.2; 
+
+// --- Heat Insert & Positionering ---
+insert_gat_diam = 5.6; 
+bout_gat_diam = 4.5;   
+mount_diam = 12;       
+
+// Schroefkop inkeping
+schroefkop_diam = 8.5;  
+schroefkop_diepte = 2.0; 
+
+// --- POSITIONERING BUSSEN ---
+inspringing = 7;    // Afstand vanaf de gebogen wanden (naar binnen/buiten)
+offset_hoek = 7;    // NIEUW: Afstand vanaf de rechte wanden (omhoog/omlaag)
+
+// --- Uitvoering ---
+bakje();
+
+translate([straal_buiten * breedte_factor + 20, 0, 0]) 
+    deksel();
+
+// --- Modules ---
+
+module basis_2d() {
+    scale([breedte_factor, 1, 1]) {
+        intersection() {
+            difference() {
+                circle(r = straal_buiten);
+                circle(r = straal_binnen);
+            }
+            polygon([[0,0], [straal_buiten*2, 0], [straal_buiten*2*cos(hoek), straal_buiten*2*sin(hoek)], [0,0]]);
+        }
+    }
+}
+
+// Aangepaste module voor fijnere controle over de positie
+module bussen_posities() {
+    scale([breedte_factor, 1, 1]) {
+        r_pos_binnen = straal_binnen + inspringing;
+        r_pos_buiten = straal_buiten - inspringing;
+
+        // Onderste bussen (bij hoek 0)
+        // De 'offset_hoek' bepaalt hier de Y-positie
+        translate([r_pos_binnen, offset_hoek, 0]) children();
+        translate([r_pos_buiten, offset_hoek, 0]) children();
+        
+        // Bovenste bussen (geroteerd)
+        // De 'offset_hoek' wordt hier van de totale hoek afgetrokken
+        rotate([0, 0, hoek]) {
+            translate([r_pos_binnen, -offset_hoek, 0]) children();
+            translate([r_pos_buiten, -offset_hoek, 0]) children();
+        }
+    }
+}
+
+// ... Rest van de modules (bakje en deksel) blijven hetzelfde ...
+
+module bakje() {
+    difference() {
+        union() {
+            difference() {
+                linear_extrude(hoogte_bakje) basis_2d();
+                translate([0, 0, wand_dikte]) 
+                    linear_extrude(hoogte_bakje) 
+                        offset(r = -wand_dikte) basis_2d();
+                translate([0, 0, hoogte_bakje - rand_diepte]) 
+                    linear_extrude(rand_diepte + 1) 
+                        offset(r = -wand_dikte/2) basis_2d();
+            }
+            linear_extrude(hoogte_bakje - rand_diepte) 
+                bussen_posities() circle(d = mount_diam);
+        }
+        translate([0, 0, hoogte_bakje - 8]) 
+            linear_extrude(10) 
+                bussen_posities() circle(d = insert_gat_diam);
+    }
+}
+
+module deksel() {
+    totale_dikte_deksel = rand_diepte + 2; 
+    difference() {
+        union() {
+            linear_extrude(rand_diepte)
+                offset(r = -wand_dikte/2 - speling) basis_2d();
+            translate([0,0, rand_diepte])
+                linear_extrude(2)
+                    basis_2d();
+        }
+        union() {
+            translate([0, 0, -1])
+                linear_extrude(totale_dikte_deksel + 2) 
+                    bussen_posities() circle(d = bout_gat_diam);
+            translate([0, 0, totale_dikte_deksel - schroefkop_diepte])
+                linear_extrude(schroefkop_diepte + 0.1) 
+                    bussen_posities() circle(d = schroefkop_diam);
+        }
+    }
+}
