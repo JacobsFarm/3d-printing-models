@@ -11,7 +11,8 @@ inner_width = 26.5;     // Internal width of the box
 inner_height = 32;      // Internal height of the box base
 outer_height = 30;      // Outer height of the lid
 wall_thickness = 3;     // Thickness of the external walls
-clearance = 0.2;        // Tolerance/clearance for fitting parts (lid, dividers)
+clearance = 0.4;        // Tolerance/clearance for internal parts (dividers)
+lid_clearance = 0.2;    // Clearance specifically for the lid fitting over the base
 
 // --- Parameters: Cable & Gland Holes ---
 gland_hole_diameter = 20.3; // Diameter of the cable gland hole (back)
@@ -92,8 +93,8 @@ module base_box() {
 
 // --- Module: Lid ---
 module lid() {
-    lid_inner_L = inner_length + (2 * wall_thickness) + clearance;
-    lid_inner_W = inner_width + (2 * wall_thickness) + clearance;
+    lid_inner_L = inner_length + (2 * wall_thickness) + lid_clearance;
+    lid_inner_W = inner_width + (2 * wall_thickness) + lid_clearance;
     lid_outer_L = lid_inner_L + (2 * wall_thickness);
     lid_outer_W = lid_inner_W + (2 * wall_thickness);
     lid_outer_H = outer_height + wall_thickness;
@@ -112,8 +113,8 @@ module lid() {
             if (include_extra_wall) {
                 color("steelblue")
                 translate([
-                    (2 * wall_thickness) + clearance + pos_extra_wall, 
-                    (2 * wall_thickness) + (clearance / 2) - groove_depth_side, 
+                    (2 * wall_thickness) + (lid_clearance / 2) + pos_extra_wall, 
+                    (2 * wall_thickness) + (lid_clearance / 2) - groove_depth_side, 
                     groove_depth_bottom - 1.2
                 ])
                     cube([wall_thickness, inner_width - clearance + (2 * groove_depth_side), lid_outer_H + groove_depth_bottom - 1]);
@@ -133,8 +134,8 @@ module lid() {
             
         // 3. Divider grooves (in the top plate of the lid)
         for (pos = [pos_divider_1, pos_divider_2, pos_divider_3, pos_divider_4]) {
-            pos_x_lid = (2 * wall_thickness) + (clearance / 2) + pos;
-            translate([pos_x_lid, (2 * wall_thickness) + (clearance / 2) - groove_depth_side, wall_thickness - groove_depth_bottom])
+            pos_x_lid = (2 * wall_thickness) + (lid_clearance / 2) + pos;
+            translate([pos_x_lid, (2 * wall_thickness) + (lid_clearance / 2) - groove_depth_side, wall_thickness - groove_depth_bottom])
                 cube([divider_thickness + clearance, inner_width + (2 * groove_depth_side), groove_depth_bottom + 1]);
         }
         
