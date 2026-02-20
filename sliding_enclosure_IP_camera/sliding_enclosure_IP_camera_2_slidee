@@ -1,0 +1,228 @@
+// ==========================================
+// Parametric Enclosure with Sliding Dividers
+// ==========================================
+
+// --- Global Settings ---
+$fn = 100; // Resolution for rounded objects (e.g., cylinders)
+
+// --- Parameters: Main Dimensions ---
+inner_length = 150;     // Internal length of the box
+inner_width = 26.5;     // Internal width of the box
+inner_height = 32;      // Internal height of the box base
+outer_height = 30;      // Outer height of the lid
+wall_thickness = 3;     // Thickness of the external walls
+
+// --- Parameters: Clearances ---
+lid_clearance = 0.2;       // Tolerance specifically for the lid fitting over the base
+divider_clearance = 0.4;   // Tolerance for sliding parts (dividers and extra wall)
+
+// --- Parameters: Cable Holes (Front & Back) ---
+cable_hole_width = 4.5;     // Width of the cable cutout
+cable_hole_height = 4.5;    // Height of the cable cutout
+
+// --- Parameters: Lid ---
+lid_bottom_margin = 3;      // Margin/skirt at the bottom edge of the lid
+
+// --- Parameters: Lid Finger Grips ---
+grip_length = 130;       // Length of the finger indentations
+grip_height = 12;        // Height of the finger indentations
+grip_depth = 1.5;        // Depth of the indentation (must be less than wall_thickness)
+
+// --- Parameters: Dividers & Extra Wall ---
+divider_thickness = 2;      // Thickness of the sliding dividers
+groove_depth_side = 1.5;    // Depth of the slots inside the side walls
+groove_depth_bottom = 1.5;  // Depth of the slots in the bottom floor
+
+// NEW: Toggle for the extra inner walls attached to the lid (Front AND Back)
+include_extra_wall = true;  // Set to false to remove the extra walls and their grooves
+pos_extra_wall = 0.2;       // Position offset for the extra walls
+
+// Positions of the standard dividers along the length of the box
+pos_divider_1 = 10;
+pos_divider_2 = 14;
+pos_divider_3 = 50;
+pos_divider_4 = 55;
+
+// --- Model Selection (Set to 'true' to render) ---
+print_base = true;
+print_lid = true;
+print_dividers = true;
+
+// ==========================================
+// Modules
+// ==========================================
+
+// --- Module: Base Box ---
+module base_box() {
+    outer_L = inner_length + (2 * wall_thickness);
+    outer_W = inner_width + (2 * wall_thickness);
+    outer_H = inner_height + wall_thickness;
+
+    color("Gray")
+    difference() {
+        // Main outer block
+        cube([outer_L, outer_W, outer_H]);
+        
+        // Hollow inner space
+        translate([wall_thickness, wall_thickness, wall_thickness])
+            cube([inner_length, inner_width, inner_height + 1]);
+        
+        // Cable cutout (front wall)
+        z_stop_base = (inner_height / 2) - (cable_hole_height / 2);
+        translate([-1, (outer_W - cable_hole_width) / 2, z_stop_base])
+            cube([wall_thickness * 8, cable_hole_width, outer_H]);
+            
+        // Cable cutout (back wall - mirrored from front)
+        translate([outer_L - (wall_thickness * 8) + 1, (outer_W - cable_hole_width) / 2, z_stop_base])
+            cube([wall_thickness * 8, cable_hole_width, outer_H]);
+        
+        // --- EXTRA GROOVES FOR THE EXTRA WALLS (Conditional) ---
+        if (include_extra_wall) {
+            // Front groove
+            translate([wall_thickness + pos_extra_wall - 0.2, wall_thickness - groove_depth_side, wall_thickness - groove_depth_bottom])
+                cube([wall_thickness + divider_clearance + 0.4, inner_width + (2 * groove_depth_side), inner_height + groove_depth_bottom + 1]);
+            
+            // Back groove (mirrored)
+            translate([outer_L - wall_thickness - pos_extra_wall - wall_thickness - divider_clearance - 0.2, wall_thickness - groove_depth_side, wall_thickness - groove_depth_bottom])
+                cube([wall_thickness + divider_clearance + 0.4, inner_width + (2 * groove_depth_side), inner_height + groove_depth_bottom + 1]);
+        }
+
+        // Divider grooves
+        for (pos = [pos_divider_1, pos_divider_2, pos_divider_3, pos_divider_4]) {
+            translate([wall_thickness + pos, wall_thickness - groove_depth_side, wall_thickness - groove_depth_bottom])
+                cube([divider_thickness + divider_clearance, inner_width + (2 * groove_depth_side), inner_height + groove_depth_bottom + 1]);
+        }
+    }
+}
+
+// --- Module: Lid ---
+module lid() {
+    lid_inner_L = inner_length + (2 * wall_thickness) + lid_clearance;
+    lid_inner_W = inner_width + (2 * wall_thickness) + lid_clearance;
+    lid_outer_L = lid_inner_L + (2 * wall_thickness);
+    lid_outer_W = lid_inner_W + (2 * wall_thickness);
+    lid_outer_H = outer_height + wall_thickness;
+    
+    difference() {
+        union() {
+            // Main lid body
+            color("SteelBlue")
+            difference() {
+                cube([lid_outer_L, lid_outer_W, lid_outer_H]);
+                translate([wall_thickness, wall_thickness, wall_thickness])
+                    cube([lid_inner_L, lid_inner_W, lid_outer_H + 1]);
+            }
+            
+            // --- EXTRA WALLS (EXTENDED) (Conditional) ---
+            if (include_extra_wall) {
+                color("steelblue")
+                // Front extra wall
+                translate([
+                    (2 * wall_thickness) + lid_clearance + pos_extra_wall, 
+                    (2 * wall_thickness) + (lid_clearance / 2) - groove_depth_side, 
+                    groove_depth_bottom - 1.2
+                ])
+                    cube([wall_thickness, inner_width - lid_clearance + (2 * groove_depth_side), lid_outer_H + groove_depth_bottom - 1]);
+                    
+                // Back extra wall (mirrored)
+                translate([
+                    lid_outer_L - (2 * wall_thickness) - lid_clearance - pos_extra_wall - wall_thickness, 
+                    (2 * wall_thickness) + (lid_clearance / 2) - groove_depth_side, 
+                    groove_depth_bottom - 1.2
+                ])
+                    cube([wall_thickness, inner_width - lid_clearance + (2 * groove_depth_side), lid_outer_H + groove_depth_bottom - 1]);
+            }
+        }
+        
+        // --- CUTOUTS ---
+
+        // 1. Cable cutout front (goes through both walls)
+        z_start_hole_lid = (inner_height / 2) + (cable_hole_height / 2);
+        translate([-1, (lid_outer_W - cable_hole_width) / 2, z_start_hole_lid])
+            cube([wall_thickness * 8, cable_hole_width, lid_outer_H + 10]);
+            
+        // 2. Cable cutout back (goes through both walls - mirrored from front)
+        translate([lid_outer_L - (wall_thickness * 8) + 1, (lid_outer_W - cable_hole_width) / 2, z_start_hole_lid])
+            cube([wall_thickness * 8, cable_hole_width, lid_outer_H + 10]);
+            
+        // 3. Divider grooves (in the top plate of the lid)
+        for (pos = [pos_divider_1, pos_divider_2, pos_divider_3, pos_divider_4]) {
+            pos_x_lid = (2 * wall_thickness) + (lid_clearance / 2) + pos;
+            translate([pos_x_lid, (2 * wall_thickness) + (lid_clearance / 2) - groove_depth_side, wall_thickness - groove_depth_bottom])
+                cube([divider_thickness + divider_clearance, inner_width + (2 * groove_depth_side), groove_depth_bottom + 1]);
+        }
+        
+        // 4. Finger grips on the long sides
+        grip_z_pos = lid_outer_H - (grip_height / 2) - 15; 
+        
+        translate([lid_outer_L / 2, grip_depth - (grip_height / 2), grip_z_pos])
+            rotate([0, 90, 0])
+                cylinder(h = grip_length, d = grip_height, center = true);
+                
+        translate([lid_outer_L / 2, lid_outer_W - grip_depth + (grip_height / 2), grip_z_pos])
+            rotate([0, 90, 0])
+                cylinder(h = grip_length, d = grip_height, center = true);
+    }
+}
+
+// --- Module: Standard Divider ---
+module divider(hole_diameter) {
+    div_width = inner_width + (2 * groove_depth_side) - divider_clearance;
+    div_height = inner_height + (2 * groove_depth_bottom) - (divider_clearance / 2);
+    
+    color("Green")
+    difference() {
+        cube([divider_thickness, div_width, div_height]);
+        
+        translate([-0.5, div_width / 2, div_height / 2])
+            rotate([0, 90, 0])
+                cylinder(d = hole_diameter, h = divider_thickness + 1);
+        
+        translate([-0.5, (div_width / 2) - (hole_diameter / 2), div_height / 2])
+            cube([divider_thickness + 1, hole_diameter, div_height]);
+    }
+}
+
+// --- Module: Spare Divider ---
+module spare_divider(slot_width, bottom_distance) {
+    div_width = inner_width + (2 * groove_depth_side) - divider_clearance;
+    div_height = inner_height + (2 * groove_depth_bottom) - (divider_clearance / 2);
+    
+    color("Orange")
+    difference() {
+        cube([divider_thickness, div_width, div_height]);
+        
+        translate([-0.5, (div_width / 2) - (slot_width / 2), bottom_distance])
+            cube([divider_thickness + 1, slot_width, div_height + 1]);
+    }
+}
+
+// ==========================================
+// Layout & Rendering
+// ==========================================
+
+if (print_base) {
+    base_box();
+}
+
+if (print_lid) {
+    offset_y_lid = inner_width + (4 * wall_thickness) + 25;
+    translate([0, offset_y_lid, 0])
+        lid();
+}
+
+if (print_dividers) {
+    offset_y_div = - (inner_width + 15);
+    div_height_flat = inner_height + (2 * groove_depth_bottom) - (divider_clearance / 2);
+
+    for (i = [0:3]) {
+        d_hole = (i < 2) ? 12 : 24;
+        translate([i * (div_height_flat + 5), offset_y_div, divider_thickness]) 
+            rotate([0, 90, 0])
+                divider(hole_diameter = d_hole);
+    }
+    
+    translate([4 * (div_height_flat + 5), offset_y_div, divider_thickness])
+        rotate([0, 90, 0])
+            spare_divider(slot_width = 24, bottom_distance = 11);
+}
