@@ -211,5 +211,5 @@ if (print_dividers) {
     
     translate([4 * (div_height_flat + 5), offset_y_div, divider_thickness])
         rotate([0, 90, 0])
-            spare_divider(slot_width = 24, bottom_distance = 11);
+            spare_divider(slot_width = 24, bottom_distance = 7);
 }
