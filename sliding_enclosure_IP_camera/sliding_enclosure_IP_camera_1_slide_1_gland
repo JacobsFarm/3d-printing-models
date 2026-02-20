@@ -15,7 +15,7 @@ clearance = 0.4;        // Tolerance/clearance for internal parts (dividers)
 lid_clearance = 0.2;    // Clearance specifically for the lid fitting over the base
 
 // --- Parameters: Cable & Gland Holes ---
-gland_hole_diameter = 20.3; // Diameter of the cable gland hole (back)
+gland_hole_diameter = 20.4; // Diameter of the cable gland hole (back)
 cable_hole_width = 4.5;     // Width of the cable cutout (front)
 cable_hole_height = 4.5;    // Height of the cable cutout (front)
 
