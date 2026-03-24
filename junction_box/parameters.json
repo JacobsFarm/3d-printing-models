@@ -1,0 +1,80 @@
+{
+  "metadata": {
+    "type": "3D Design (OpenSCAD)",
+    "name": "Parametric Electrobox IP65",
+    "objective": "A 3D-printable, water-resistant enclosure with a recessed lid and internal screw pillars.",
+    "design_requirements": {
+      "parametric": "All dimensions (L, W, H, wall thickness) are variable via top-level parameters.",
+      "internal_lip": "The box features an internal 'shoulder' or lip on the upper rim.",
+      "sealing_method": "Sealing occurs on the inside of the rim, rather than overlapping the exterior.",
+      "hugging_pillars": "Internal walls and the sealing lip curve fluidly around the circular screw posts (slaloming).",
+      "ip65_integrity": "Screw holes in the base are blind (do not penetrate the exterior) to ensure water resistance.",
+      "tolerances": "Includes an adjustable gap between the lid edge and the box groove for 3D printing fit."
+    },
+    "version": "2.0"
+  },
+  "render_options": {
+    "show_box": true,
+    "comment_show_box": "Set to true to render the bottom enclosure.",
+    "show_lid": false,
+    "comment_show_lid": "Set to true to render the top lid."
+  },
+  "dimensions": {
+    "L": 100,
+    "comment_L": "Outer length of the box.",
+    "W": 85,
+    "comment_W": "Outer width of the box.",
+    "H_box": 45,
+    "comment_H_box": "Height of the bottom box part.",
+    "H_lid": 6,
+    "comment_H_lid": "Total thickness of the lid.",
+    "wall": 4,
+    "comment_wall": "Outer wall thickness.",
+    "R": 6,
+    "comment_R": "Outer corner radius.",
+    "fn": 60,
+    "comment_fn": "Number of fragments for circles and arcs."
+  },
+  "glands": {
+    "x_axis": {
+      "gland_1": {
+        "show": true,
+        "D": 20.5,
+        "comment": "Toggle and diameter for left side gland (X-axis)."
+      },
+      "gland_2": {
+        "show": true,
+        "D": 28.5,
+        "comment": "Toggle and diameter for right side gland (X-axis)."
+      }
+    },
+    "y_axis": {
+      "spacing": 40,
+      "comment_spacing": "Center-to-center distance between Y-axis holes.",
+      "front_left": { "show": false, "D": 12.5 },
+      "front_right": { "show": false, "D": 16.2 },
+      "back_left": { "show": false, "D": 20.4 },
+      "back_right": { "show": false, "D": 16.2 }
+    }
+  },
+  "lip_and_seal": {
+    "lip_h": 2,
+    "comment_lip_h": "Height of the interlocking lip.",
+    "lip_offset": 2,
+    "comment_lip_offset": "Thickness/offset of the inner lip.",
+    "fit_tolerance": 0.2,
+    "comment_fit_tolerance": "Extra clearance between lid and box."
+  },
+  "mounting_posts": {
+    "post_R": 6,
+    "comment_post_R": "Radius of the solid screw posts in the corners.",
+    "hole_R": 2,
+    "comment_hole_R": "Radius of the screw hole.",
+    "head_R": 3.8,
+    "comment_head_R": "Radius for the countersunk screw head.",
+    "head_depth": 2.5,
+    "comment_head_depth": "Depth of the chamfer.",
+    "fillet_R": 3,
+    "comment_fillet_R": "Radius of the smooth fillet between posts and walls (hugging pillars)."
+  }
+}
