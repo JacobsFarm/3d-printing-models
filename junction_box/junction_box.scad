@@ -1,6 +1,6 @@
 // --- Render Options ---
-show_box = true;    // Set to true to render the bottom enclosure
-show_lid = true;    // Set to true to render the top lid
+show_box = true;        // Set to true to render the bottom enclosure
+show_lid = true;        // Set to true to render the top lid
 
 // --- Dimensions ---
 L = 100;                // Outer length of the box
@@ -48,6 +48,14 @@ head_R = 3.8;           // Radius of the screw head top
 head_depth = 2.5;       // Depth of the screw head chamfer
 fillet_R = 3;           // Radius of the fillet between posts and walls
 
+// --- Mounting Feet ---
+enable_front_foot = false; // Changed from left to front
+enable_back_foot = false;  // Changed from right to back
+foot_width = 30;
+foot_length = 20;
+screw_hole_diameter = 4.5;
+gusset_height = 15;
+
 // --- Resolution ---
 $fn = 60;
 
@@ -60,7 +68,6 @@ module outer_profile() {
 module raw_cavity() {
     difference() {
         offset(r=R - wall) square([L - 2*R, W - 2*R], center=true);
-        
         // Corner pillars
         for(i = [-1, 1], j = [-1, 1]) {
             translate([i*(L/2 - R), j*(W/2 - R)])
@@ -98,15 +105,50 @@ module lip_profile() {
     }
 }
 
+module mounting_foot() {
+    difference() {
+        union() {
+            // Flat Base Plate
+            translate([0, -foot_width/2, 0])
+                cube([foot_length, foot_width, bottom_thickness]);
+            
+            // Front Gusset (Aangepast zodat hij niet onder de bodemplaat zakt op het einde)
+            translate([0, -foot_width/2 + wall/2, 0])
+                rotate([90, 0, 0])
+                linear_extrude(wall, center=true)
+                polygon(points=[
+                    [-0.1, 0], 
+                    [foot_length, 0], 
+                    [foot_length, bottom_thickness], 
+                    [-0.1, gusset_height + bottom_thickness]
+                ]);
+                
+            // Back Gusset (Aangepast zodat hij niet onder de bodemplaat zakt op het einde)
+            translate([0, foot_width/2 - wall/2, 0])
+                rotate([90, 0, 0])
+                linear_extrude(wall, center=true)
+                polygon(points=[
+                    [-0.1, 0], 
+                    [foot_length, 0], 
+                    [foot_length, bottom_thickness], 
+                    [-0.1, gusset_height + bottom_thickness]
+                ]);
+        }
+        
+        // Centered Screw Hole
+        translate([foot_length/2, 0, -1])
+            cylinder(d=screw_hole_diameter, h=bottom_thickness + 2);
+    }
+}
+
 module enclosure_box() {
     gland_z = bottom_thickness + (H_box - bottom_thickness) / 2;
-    
     difference() {
         union() {
             // Bottom Floor
             linear_extrude(bottom_thickness)
                 outer_profile();
-                
+            
             // Walls
             translate([0, 0, bottom_thickness])
                 linear_extrude(H_box - lip_h - bottom_thickness)
@@ -119,6 +161,18 @@ module enclosure_box() {
             translate([0, 0, H_box - lip_h])
                 linear_extrude(lip_h)
                     lip_profile();
+                    
+            // --- External Mounting Feet Integration ---
+            if (enable_front_foot) {
+                translate([0, -W/2, 0])
+                    rotate([0, 0, -90])
+                    mounting_foot();
+            }
+            if (enable_back_foot) {
+                translate([0, W/2, 0])
+                    rotate([0, 0, 90])
+                    mounting_foot();
+            }
         }
 
         // Corner screw holes
