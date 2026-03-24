@@ -3,52 +3,55 @@ show_box = true;    // Set to true to render the bottom enclosure
 show_lid = true;    // Set to true to render the top lid
 
 // --- Dimensions ---
-L = 100;            // Outer length of the box
-W = 85;             // Outer width of the box
-H_box = 45;         // Height of the bottom box part
-H_lid = 5;          // Total thickness of the lid
-wall = 4;           // Outer wall thickness
-bottom_thickness = 2; // Dikte van de bodem
-R = 6;              // Outer corner radius
+L = 100;                // Outer length of the box
+W = 85;                 // Outer width of the box
+H_box = 45;             // Height of the bottom box part
+H_lid = 5;              // Total thickness of the lid
+wall = 4;               // Outer wall thickness
+bottom_thickness = 2;   // Thickness of the bottom floor
+R = 6;                  // Outer corner radius
 
-// --- Glands X-axis ---
-show_gland_1 = true;      // Toggle gland 1 (X-axis, left side)
-gland_1_D    = 20.4;      // Diameter of gland 1
+// --- Glands X-axis (Sides) ---
+show_gland_1 = true;    // Toggle gland 1 (Left)
+gland_1_D    = 20.4;    // Diameter of gland 1
 
-show_gland_2 = true;      // Toggle gland 2 (X-axis, right side)
-gland_2_D    = 28.5;      // Diameter of gland 2
+show_gland_2 = true;    // Toggle gland 2 (Right)
+gland_2_D    = 28.5;    // Diameter of gland 2
 
 // --- Glands Y-axis (Front & Back) ---
-show_gland_y_front_left  = false;  // Toggle front left hole
-gland_y_front_left_D     = 12.5;  // Diameter of front left hole (e.g., M12)
+show_gland_y_front_left  = false;
+gland_y_front_left_D     = 12.5;
 
-show_gland_y_front_right = false;  // Toggle front right hole
-gland_y_front_right_D    = 16.2;  // Diameter of front right hole (e.g., M16)
+show_gland_y_front_right = false;
+gland_y_front_right_D    = 16.2;
 
-show_gland_y_back_left   = false;  // Toggle back left hole
-gland_y_back_left_D      = 20.4;  // Diameter of back left hole (e.g., M20)
+show_gland_y_back_left   = false;
+gland_y_back_left_D      = 20.4;
 
-show_gland_y_back_right  = false;  // Toggle back right hole
-gland_y_back_right_D     = 16.2;  // Diameter of back right hole (e.g., M16)
+show_gland_y_back_right  = false;
+gland_y_back_right_D     = 16.2;
 
-gland_y_spacing = 40; // Center-to-center distance between left and right hole on the Y-axis
+gland_y_spacing = 40;   // Center-to-center distance between Y-axis holes
 
 // --- Lip & Seal ---
-lip_h = 3;          // Height of the interlocking lip
-lip_offset = 2;     // Thickness/offset of the inner lip
-
-// --- Tolerances & Fit ---
-fit_tolerance = 0.2; // Extra clearance between lid and box
+lip_h = 3;              // Height of the interlocking lip
+lip_offset = 2;         // Thickness/offset of the inner lip
+fit_tolerance = 0.2;    // Extra clearance between lid and box
 
 // --- Mounting Posts & Screws ---
-post_R = 6;         // Radius of the solid screw posts in the corners
-hole_R = 1.8;         // Radius of the screw hole
-head_R = 3.8;       // Radius at the top of the head
-head_depth = 2.5;   // Depth of the chamfer
-fillet_R = 3;       // Radius of the smooth fillet between posts and walls
+show_mid_pillars = false; // Extra pillars in the middle (Y-axis walls)
+show_end_pillars = false; // Extra pillars in the middle (X-axis walls)
+
+post_R = 6;             // Radius of the solid screw posts
+hole_R = 1.8;           // Radius of the screw hole
+head_R = 3.8;           // Radius of the screw head top
+head_depth = 2.5;       // Depth of the screw head chamfer
+fillet_R = 3;           // Radius of the fillet between posts and walls
 
 // --- Resolution ---
-$fn = 60;           // Number of fragments for circles/arcs
+$fn = 60;
+
+// --- Modules ---
 
 module outer_profile() {
     offset(r=R) square([L - 2*R, W - 2*R], center=true);
@@ -57,9 +60,27 @@ module outer_profile() {
 module raw_cavity() {
     difference() {
         offset(r=R - wall) square([L - 2*R, W - 2*R], center=true);
+        
+        // Corner pillars
         for(i = [-1, 1], j = [-1, 1]) {
             translate([i*(L/2 - R), j*(W/2 - R)])
                 circle(r=post_R);
+        }
+        
+        // Mid pillars on long sides
+        if (show_mid_pillars) {
+            for(j = [-1, 1]) {
+                translate([0, j*(W/2 - R)])
+                    circle(r=post_R);
+            }
+        }
+
+        // Mid pillars on short sides
+        if (show_end_pillars) {
+            for(i = [-1, 1]) {
+                translate([i*(L/2 - R), 0])
+                    circle(r=post_R);
+            }
         }
     }
 }
@@ -78,16 +99,15 @@ module lip_profile() {
 }
 
 module enclosure_box() {
-    // Berekening voor het exacte midden van de binnenruimte (Z-as)
     gland_z = bottom_thickness + (H_box - bottom_thickness) / 2;
-
+    
     difference() {
         union() {
-            // Bodem
+            // Bottom Floor
             linear_extrude(bottom_thickness)
                 outer_profile();
-
-            // Wanden
+                
+            // Walls
             translate([0, 0, bottom_thickness])
                 linear_extrude(H_box - lip_h - bottom_thickness)
                     difference() {
@@ -95,19 +115,35 @@ module enclosure_box() {
                         cavity_profile();
                     }
 
-            // Rand voor de deksel
+            // Lip for the lid
             translate([0, 0, H_box - lip_h])
                 linear_extrude(lip_h)
                     lip_profile();
         }
 
-        // Schroefgaten in de hoeken (beginnen nu op de bodem)
+        // Corner screw holes
         for(i = [-1, 1], j = [-1, 1]) {
             translate([i*(L/2 - R), j*(W/2 - R), bottom_thickness])
                 cylinder(r=hole_R, h=H_box + 1);
         }
         
-        // Wartelgaten (uitgelijnd op gland_z)
+        // Long side pillar screw holes
+        if (show_mid_pillars) {
+            for(j = [-1, 1]) {
+                translate([0, j*(W/2 - R), bottom_thickness])
+                    cylinder(r=hole_R, h=H_box + 1);
+            }
+        }
+
+        // Short side pillar screw holes
+        if (show_end_pillars) {
+            for(i = [-1, 1]) {
+                translate([i*(L/2 - R), 0, bottom_thickness])
+                    cylinder(r=hole_R, h=H_box + 1);
+            }
+        }
+        
+        // Gland holes
         if (show_gland_1) {
             translate([-L/2, 0, gland_z])
                 rotate([0, 90, 0])
@@ -150,23 +186,49 @@ module enclosure_lid() {
     difference() {
         linear_extrude(H_lid)
             outer_profile();
-
+            
+        // Lip cutout
         translate([0, 0, -0.1])
             linear_extrude(lip_h + 0.2)
                 offset(r=lip_offset + fit_tolerance) cavity_profile();
-
+                
+        // Corner screw holes and chamfers
         for(i = [-1, 1], j = [-1, 1]) {
             translate([i*(L/2 - R), j*(W/2 - R), 0]) {
                 translate([0, 0, -1])
                     cylinder(r=hole_R * 1.1, h=H_lid + 2);
-                
                 translate([0, 0, H_lid - head_depth])
-                    cylinder(r1=hole_R * 1.1, r2=head_R, h=head_depth + 0.01); 
+                    cylinder(r1=hole_R * 1.1, r2=head_R, h=head_depth + 0.01);
+            }
+        }
+        
+        // Mid-pillar screw holes (Long sides)
+        if (show_mid_pillars) {
+            for(j = [-1, 1]) {
+                translate([0, j*(W/2 - R), 0]) {
+                    translate([0, 0, -1])
+                        cylinder(r=hole_R * 1.1, h=H_lid + 2);
+                    translate([0, 0, H_lid - head_depth])
+                        cylinder(r1=hole_R * 1.1, r2=head_R, h=head_depth + 0.01);
+                }
+            }
+        }
+
+        // Mid-pillar screw holes (Short sides)
+        if (show_end_pillars) {
+            for(i = [-1, 1]) {
+                translate([i*(L/2 - R), 0, 0]) {
+                    translate([0, 0, -1])
+                        cylinder(r=hole_R * 1.1, h=H_lid + 2);
+                    translate([0, 0, H_lid - head_depth])
+                        cylinder(r1=hole_R * 1.1, r2=head_R, h=head_depth + 0.01);
+                }
             }
         }
     }
 }
 
+// --- Execution ---
 if (show_box) {
     color("green") enclosure_box();
 }
