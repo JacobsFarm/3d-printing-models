@@ -14,13 +14,16 @@ R = 6;              // Outer corner radius
 lip_h = 3;          // Height of the interlocking lip
 lip_offset = 2;     // Thickness/offset of the inner lip
 
+// --- Tolerances & Fit ---
+fit_tolerance = 0.2; // Extra clearance between lid and box (increase if too tight, decrease if too loose)
+
 // --- Mounting Posts ---
 post_R = 6;         // Radius of the solid screw posts in the corners
 hole_R = 2;         // Radius of the screw hole (e.g., 1.5 for an M3 screw)
 
-// --- Nieuw: Schroefkop instellingen ---
-head_R = 4;       // Radius bovenaan de kop (Maak groter voor een flauwere helling)
-head_depth = 2;   // Diepte van de schuine rand (Maak groter voor een flauwere helling)
+// --- Screw Head Settings ---
+head_R = 3.8;       // Radius at the top of the head (increase for a shallower angle)
+head_depth = 2.5;   // Depth of the chamfer (increase for a shallower angle)
 
 fillet_R = 3;       // Radius of the smooth fillet between posts and walls
 
@@ -80,24 +83,23 @@ module enclosure_box() {
 }
 
 module enclosure_lid() {
-    tolerance = 0.2;
-    
     difference() {
         linear_extrude(H_lid)
             outer_profile();
 
+        // Apply the fit_tolerance here for the lip offset
         translate([0, 0, -0.1])
             linear_extrude(lip_h + 0.2)
-                offset(r=lip_offset + tolerance) cavity_profile();
+                offset(r=lip_offset + fit_tolerance) cavity_profile();
 
         for(i = [-1, 1], j = [-1, 1]) {
             translate([i*(L/2 - R), j*(W/2 - R), 0]) {
                 
-                // Het doorlopende rechte gat voor de schroefdraad
+                // The straight through-hole for the screw
                 translate([0, 0, -1])
                     cylinder(r=hole_R * 1.1, h=H_lid + 2);
                 
-                // Vloeiende (conische) inkepping, nu gekoppeld aan je nieuwe instellingen
+                // Smooth (conical) countersink for the screw head
                 translate([0, 0, H_lid - head_depth])
                     cylinder(r1=hole_R * 1.1, r2=head_R, h=head_depth + 0.01); 
             }
