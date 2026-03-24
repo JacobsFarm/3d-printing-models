@@ -13,7 +13,7 @@ R = 6;              // Outer corner radius
 
 // --- Glands X-axis ---
 show_gland_1 = true;      // Toggle gland 1 (X-axis, left side)
-gland_1_D    = 20.5;      // Diameter of gland 1
+gland_1_D    = 20.4;      // Diameter of gland 1
 
 show_gland_2 = true;      // Toggle gland 2 (X-axis, right side)
 gland_2_D    = 28.5;      // Diameter of gland 2
@@ -42,7 +42,7 @@ fit_tolerance = 0.2; // Extra clearance between lid and box
 
 // --- Mounting Posts & Screws ---
 post_R = 6;         // Radius of the solid screw posts in the corners
-hole_R = 2;         // Radius of the screw hole
+hole_R = 1.8;         // Radius of the screw hole
 head_R = 3.8;       // Radius at the top of the head
 head_depth = 2.5;   // Depth of the chamfer
 fillet_R = 3;       // Radius of the smooth fillet between posts and walls
