@@ -4,6 +4,9 @@ Volume 1
 with all the gland options (all able to adjust to size
 <img width="581" height="420" alt="image" src="https://github.com/user-attachments/assets/525b5a91-5795-49bc-aff4-acae1f4c489d" />
 
+![5917965004449713343](https://github.com/user-attachments/assets/ae0b18ce-5f44-47c4-b6ca-f3f51ed4c7c2)
+
+
 
 # Parametric IP65 Electrobox
 
