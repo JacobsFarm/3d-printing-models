@@ -43,7 +43,7 @@ show_mid_pillars = false; // Extra pillars in the middle (Y-axis walls)
 show_end_pillars = false; // Extra pillars in the middle (X-axis walls)
 
 post_R = 6;             // Radius of the solid screw posts
-hole_R = 1.8;           // Radius of the screw hole
+hole_R = 1.3;           // Radius of the screw hole
 head_R = 3.8;           // Radius of the screw head top
 head_depth = 2.5;       // Depth of the screw head chamfer
 fillet_R = 3;           // Radius of the fillet between posts and walls
