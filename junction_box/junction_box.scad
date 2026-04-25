@@ -42,11 +42,12 @@ fit_tolerance = 0.2;    // Extra clearance between lid and box
 show_mid_pillars = false; // Extra pillars in the middle (Y-axis walls)
 show_end_pillars = false; // Extra pillars in the middle (X-axis walls)
 
-post_R = 6;             // Radius of the solid screw posts
-hole_R = 1.3;           // Radius of the screw hole
-head_R = 3.8;           // Radius of the screw head top
+post_D = 12;            // Diameter of the solid screw posts
+insert_D = 4.05;         // Diameter of the heat insert hole
+screw_D = 3.7;          // Diameter of the Lid schrewhole
+head_D = 7.6;           // Diameter of the screw head top
 head_depth = 2.5;       // Depth of the screw head chamfer
-fillet_R = 3;           // Radius of the fillet between posts and walls
+fillet_D = 6;           // Diameter of the fillet between posts and walls
 
 // --- Mounting Feet ---
 enable_front_foot = false; // Changed from left to front
@@ -71,14 +72,14 @@ module raw_cavity() {
         // Corner pillars
         for(i = [-1, 1], j = [-1, 1]) {
             translate([i*(L/2 - R), j*(W/2 - R)])
-                circle(r=post_R);
+                circle(d=post_D);
         }
         
         // Mid pillars on long sides
         if (show_mid_pillars) {
             for(j = [-1, 1]) {
                 translate([0, j*(W/2 - R)])
-                    circle(r=post_R);
+                    circle(d=post_D);
             }
         }
 
@@ -86,15 +87,15 @@ module raw_cavity() {
         if (show_end_pillars) {
             for(i = [-1, 1]) {
                 translate([i*(L/2 - R), 0])
-                    circle(r=post_R);
+                    circle(d=post_D);
             }
         }
     }
 }
 
 module cavity_profile() {
-    offset(r=fillet_R) 
-        offset(r=-fillet_R) 
+    offset(r=fillet_D/2) 
+        offset(r=-fillet_D/2) 
             raw_cavity();
 }
 
@@ -178,14 +179,14 @@ module enclosure_box() {
         // Corner screw holes
         for(i = [-1, 1], j = [-1, 1]) {
             translate([i*(L/2 - R), j*(W/2 - R), bottom_thickness])
-                cylinder(r=hole_R, h=H_box + 1);
+                cylinder(d=insert_D, h=H_box + 1);
         }
         
         // Long side pillar screw holes
         if (show_mid_pillars) {
             for(j = [-1, 1]) {
                 translate([0, j*(W/2 - R), bottom_thickness])
-                    cylinder(r=hole_R, h=H_box + 1);
+                    cylinder(d=insert_D, h=H_box + 1);
             }
         }
 
@@ -193,7 +194,7 @@ module enclosure_box() {
         if (show_end_pillars) {
             for(i = [-1, 1]) {
                 translate([i*(L/2 - R), 0, bottom_thickness])
-                    cylinder(r=hole_R, h=H_box + 1);
+                    cylinder(d=insert_D, h=H_box + 1);
             }
         }
         
@@ -250,9 +251,9 @@ module enclosure_lid() {
         for(i = [-1, 1], j = [-1, 1]) {
             translate([i*(L/2 - R), j*(W/2 - R), 0]) {
                 translate([0, 0, -1])
-                    cylinder(r=hole_R * 1.1, h=H_lid + 2);
+                    cylinder(d=screw_D, h=H_lid + 2);
                 translate([0, 0, H_lid - head_depth])
-                    cylinder(r1=hole_R * 1.1, r2=head_R, h=head_depth + 0.01);
+                    cylinder(d1=screw_D, d2=head_D, h=head_depth + 0.01);
             }
         }
         
@@ -261,9 +262,9 @@ module enclosure_lid() {
             for(j = [-1, 1]) {
                 translate([0, j*(W/2 - R), 0]) {
                     translate([0, 0, -1])
-                        cylinder(r=hole_R * 1.1, h=H_lid + 2);
+                        cylinder(d=screw_D, h=H_lid + 2);
                     translate([0, 0, H_lid - head_depth])
-                        cylinder(r1=hole_R * 1.1, r2=head_R, h=head_depth + 0.01);
+                        cylinder(d1=screw_D, d2=head_D, h=head_depth + 0.01);
                 }
             }
         }
@@ -273,9 +274,9 @@ module enclosure_lid() {
             for(i = [-1, 1]) {
                 translate([i*(L/2 - R), 0, 0]) {
                     translate([0, 0, -1])
-                        cylinder(r=hole_R * 1.1, h=H_lid + 2);
+                        cylinder(d=screw_D, h=H_lid + 2);
                     translate([0, 0, H_lid - head_depth])
-                        cylinder(r1=hole_R * 1.1, r2=head_R, h=head_depth + 0.01);
+                        cylinder(d1=screw_D, d2=head_D, h=head_depth + 0.01);
                 }
             }
         }
