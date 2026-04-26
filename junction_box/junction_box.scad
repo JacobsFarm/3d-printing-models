@@ -43,7 +43,7 @@ show_mid_pillars = false; // Extra pillars in the middle (Y-axis walls)
 show_end_pillars = false; // Extra pillars in the middle (X-axis walls)
 
 post_D = 12;            // Diameter of the solid screw posts
-insert_D = 4.05;         // Diameter of the heat insert hole
+insert_D = 4.8;         // Diameter of the heat insert hole, make 4 or 3.8 for a standard screw
 screw_D = 3.7;          // Diameter of the Lid schrewhole
 head_D = 7.6;           // Diameter of the screw head top
 head_depth = 2.5;       // Depth of the screw head chamfer
